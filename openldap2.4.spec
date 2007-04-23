@@ -1,6 +1,6 @@
 %define pkg_name	openldap
 %define version	2.4.4
-%define rel 1
+%define rel 2
 %global	beta alpha
 
 %{?!mklibname:%{error:You are missing macros, build will fail, see http://qa.mandriva.com/twiki/bin/view/Main/BackPorting}}
@@ -252,6 +252,7 @@ BuildRequires:	perl-devel
 BuildRequires:  ncurses-devel >= 5.0
 BuildRequires: tcp_wrappers%{?!notmdk:-devel} libtool%{?!notmdk:-devel}
 BuildRequires:  krb5-devel
+BuildRequires:	groff
 # for make test:
 BuildRequires:	diffutils
 BuildRoot: 	%{_tmppath}/%{name}-%{version}-root
