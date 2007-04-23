@@ -77,9 +77,9 @@
 
 %global clientbin	ldapadd,ldapcompare,ldapdelete,ldapmodify,ldapmodrdn,ldappasswd,ldapsearch,ldapwhoami
 %if %db4_internal
-%global serverbin	slapd_db_archive,slapd_db_checkpoint,slapd_db_deadlock,slapd_db_dump,slapd_db_load,slapd_db_printlog,slapd_db_recover,slapd_db_stat,slapd_db_upgrade,slapd_db_verify
+%global serverbin	slapd_db_archive,slapd_db_checkpoint,slapd_db_deadlock,slapd_db_dump,slapd_db_load,slapd_db_printlog,slapd_db_recover,slapd_db_stat,slapd_db_upgrade,slapd_db_verify,slapd-addel,slapd-bind,slapd-modify,slapd-modrdn,slapd-read,slapd-search,slapd-tester
 %else
-%global serverbin	%{nil}
+%global serverbin	slapd-addel,slapd-bind,slapd-modify,slapd-modrdn,slapd-read,slapd-search,slapd-tester
 %endif
 %define serversbin	slapadd,slapcat,slapd,slapdn,slapindex,slappasswd,slaptest,slurpd,slapacl,slapauth
 
@@ -233,6 +233,7 @@ Patch54: MigrationTools-40-preserveldif.patch
 #patches in CVS
 # see http://www.stanford.edu/services/directory/openldap/configuration/openldap-build.html
 # for other possibly interesting patches
+Patch100:	openldap-2.4-dont-write-outside-testdir.patch
 
 
 %{?_with_cyrussasl:BuildRequires: 	%{?!notmdk:libsasl-devel}%{?notmdk:cyrus-sasl-devel}}
@@ -499,6 +500,7 @@ popd
 #%patch53 -p1 -b .ntlm
 
 # patches from CVS
+%patch100 -p1 -b .dont-write-to-testdir
 
 # README:
 cp %{SOURCE13} README.mdk
