@@ -1,6 +1,7 @@
 %define pkg_name	openldap
-%define version	2.3.35
+%define version	2.4.4
 %define rel 1
+%global	beta alpha
 
 %{?!mklibname:%{error:You are missing macros, build will fail, see http://qa.mandriva.com/twiki/bin/view/Main/BackPorting}}
 
@@ -25,7 +26,7 @@
 %global notmdk 1
 %endif
 
-%if %mdkversion >= 200600
+%if %mdkversion >= 200900
 %define build_system 1
 %else
 %global build_migration 1
@@ -44,7 +45,7 @@
 %{?_with_slp: %global build_slp 1}
 %{?_without_slp: %global build_slp 0}
 
-%define major 		2.3_0
+%define major 		2.4_2
 %define fname ldap
 %define libname %mklibname %fname %major
 %define migtools_ver 	45
@@ -59,17 +60,17 @@
 %define dbver 4.2.52
 %define dbname %(a=%dbver;echo ${a%.*})
 
-%define ol_ver_major 2.3
+%define ol_ver_major 2.4
 %if %build_system
 %define ol_major %{nil}
 %define ol_suffix %nil
 %else
-%define ol_major 2.3
-%define ol_suffix 23
+%define ol_major 2.4
+%define ol_suffix 24
 %endif
 
 %if %build_alternatives || !%build_system
-%define alternative_major 2.3
+%define alternative_major 2.4
 %else
 %define alternatives_major %{nil}
 %endif
@@ -107,7 +108,7 @@ Group: 		System/Servers
 URL: 		http://www.openldap.org
 
 # Openldap source
-Source0: 	ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/%{pkg_name}-%{version}.tgz
+Source0: 	ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/%{pkg_name}-%{version}%{beta}.tgz
 
 
 ## To generate ths tarball, check the docs out of CVS:
@@ -232,12 +233,6 @@ Patch54: MigrationTools-40-preserveldif.patch
 #patches in CVS
 # see http://www.stanford.edu/services/directory/openldap/configuration/openldap-build.html
 # for other possibly interesting patches
-Patch100: openldap-2.3.35-its4924.patch
-Patch101: openldap-2.3.35-its4925.patch
-# Similar patch was submitted and merged into HEAD/2.4
-Patch104: openldap-2.3-dont-write-to-testdir.patch
-# Not in CVS yet
-Patch105: openldap-2.3.34-its4873.patch
 
 
 %{?_with_cyrussasl:BuildRequires: 	%{?!notmdk:libsasl-devel}%{?notmdk:cyrus-sasl-devel}}
@@ -360,7 +355,7 @@ Obsoletes: 	openldap-devel
 %endif
 Conflicts:	libldap1-devel
 Conflicts:	%mklibname -d ldap 2
-Conflicts:	%mklibname -d ldap 2.2_7
+Conflicts:	%mklibname -d ldap 2.3_0
 
 %description -n %libname-devel
 This package includes the development libraries and header files
@@ -460,7 +455,7 @@ also be useful as load generators etc.
 
 %prep
 %if %db4_internal
-%setup -q -n %{pkg_name}-%{version} %{?_with_migration:-a 11} -a 30 
+%setup -q -n %{pkg_name}-%{version}%{beta} %{?_with_migration:-a 11} -a 30 
 pushd db-%{dbver} >/dev/null
 #upstream patches
 %patch50
@@ -474,7 +469,7 @@ pushd db-%{dbver} >/dev/null
 %endif
 popd >/dev/null
 %else
-%setup -q  -n %{pkg_name}-%{version} %{?_with_migration:-a 11}
+%setup -q  -n %{pkg_name}-%{version}%{beta} %{?_with_migration:-a 11}
 %endif
 
 %patch0 -p1 -b .config
@@ -500,13 +495,10 @@ popd
 
 %patch46 -p1 -b .mdk
 #bgmilne %patch47 -p1 -b .maildropschema
-%patch53 -p1 -b .ntlm
+# FIXME
+#%patch53 -p1 -b .ntlm
 
 # patches from CVS
-%patch100 -b .its4924
-%patch101 -b .its4925
-%patch104 -p1 -b .dont-write-to-testdir
-%patch105 -b .its4873-nocvs
 
 # README:
 cp %{SOURCE13} README.mdk
@@ -701,10 +693,10 @@ install -d %{buildroot}/%{_datadir}/%{name}/tests
 cp -a tests/{data,scripts,Makefile,run} %{buildroot}/%{_datadir}/%{name}/tests
 ln -s %{_datadir}/%{name}/schema %{buildroot}/%{_datadir}/%{name}/tests
 find %{buildroot}/%{_datadir}/%{name}/tests -type f -name '*.conf' -exec perl -pi -e 's,\.\.\/servers\/slapd\/back-.*,%{_libdir}/%{name},g;s,\.\.\/servers\/slapd\/overlays,%{_libdir}/%{name},g' {} \;
-perl -pi -e 's,\.\.\/servers\/(slapd|slurpd)\/(slapd|slurpd),%{_sbindir}/$1%{ol_major},g;s,^PROGDIR=.*,PROGDIR=%{_bindir},g;s,^CLIENTDIR=.*,CLIENTDIR=%{_bindir},g;s,^TESTDIR=.*,TESTDIR=\${USER_TESTDIR-\$TMPDIR/openldap-testrun},g;' %{buildroot}/%{_datadir}/%{name}/tests/scripts/defines.sh %{buildroot}/%{_datadir}/%{name}/tests/run
-#perl -pi -e 's/testrun/\$TESTDIR/g;s,^SHTOOL=.*,. scripts/defines.sh,g' %{buildroot}/%{_datadir}/%{name}/tests/scripts/all
+perl -pi -e 's,(\`pwd\`\/)?\.\.\/servers\/(slapd|slurpd)\/(slapd|slurpd),%{_sbindir}/${2}%{ol_major},g;s,^PROGDIR=.*,PROGDIR=%{_bindir},g;s,^CLIENTDIR=.*,CLIENTDIR=%{_bindir},g;s,^TESTDIR=.*,TESTDIR=\${USER_TESTDIR-\$TMPDIR/openldap-testrun},g;s,^SHTOOL=.*,. scripts/defines.sh,g;' %{buildroot}/%{_datadir}/%{name}/tests/scripts/defines.sh %{buildroot}/%{_datadir}/%{name}/tests/run
+perl -pi -e 's/testrun/\$TESTDIR/g;s,^SHTOOL=.*,. scripts/defines.sh,g' %{buildroot}/%{_datadir}/%{name}/tests/scripts/all
 perl -pi -e 's/^(Makefile|SUBDIRS)/#$1/g' %{buildroot}/%{_datadir}/%{name}/tests/Makefile
-perl -pi -e  's,^SHTOOL=.*$,SHTOOL="./scripts/shtool",g' %{buildroot}/%{_datadir}/%{name}/tests/scripts/defines.sh
+echo 'SHTOOL="./scripts/shtool"' >> %{buildroot}/%{_datadir}/%{name}/tests/scripts/defines.sh
 install -m755 build/shtool %{buildroot}/%{_datadir}/%{name}/tests/scripts
 
 install -m755 tests/progs/.libs/slapd-* %{buildroot}/%{_bindir}
