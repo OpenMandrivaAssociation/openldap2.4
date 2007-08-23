@@ -274,7 +274,7 @@ Install openldap if you need LDAP applications and tools.
 %package servers
 Summary: 	OpenLDAP servers and related files
 Group: 		System/Servers
-Requires(pre):	%{?!notmdk:rpm-helper}%{?notmdk:/usr/sbin/useradd} fileutils
+Requires(pre):	%{?!notmdk:rpm-helper}%{?notmdk:/usr/sbin/useradd} coreutils
 %if !%build_modpacks
 Provides:	%{name}-back_dnssrv = %{version}-%{release}
 Provides:	%{name}-back_ldap = %{version}-%{release}
