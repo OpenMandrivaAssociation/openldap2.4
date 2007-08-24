@@ -435,7 +435,7 @@ OpenLDAP documentation, incuding RFCs and the adminitration guide
 
 %package tests
 Summary:	OpenLDAP Test Suite - tests and data
-Group:		Development
+Group:		Development/Other
 Requires:	%{name}-servers %{name}-clients %{name}-testprogs
 
 %description tests
@@ -449,7 +449,7 @@ the installed server using this package.
 
 %package testprogs
 Summary:	OpenLDAP Test Suite - simple testing client binaries
-Group:		Development
+Group:		Development/Other
 
 %description testprogs
 Programs shipped with the test suite which are used by the test suite, and may
