@@ -118,7 +118,7 @@ Source0: 	ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/%{pkg_name}-%{ver
 # make guide.html
 ## tar them up
 # mkdir openldap-guide
-# cp *.html *.gif ../images/LDAPlogo.gif openldap-guide
+# cp *.html *.gif *.png ../images/LDAPlogo.gif openldap-guide
 # tar cjvf `rpm --eval %_sourcedir`/openldap-guide-2.4.tar.bz2 openldap-guide
 ## To update the README-openldap2.4.mdv as well:
 # sdf -2txt_ vendor-standalone.sdf
