@@ -113,7 +113,7 @@ Source0: 	ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/%{pkg_name}-%{ver
 ## patch the docs:
 # cd guide/admin
 # patch -p0 < `rpm --eval %_sourcedir`/openldap-2.4-admin-guide-add-vendor-doc.patch
-# tar xjvf `rpm --eval %_sourcedir`/openldap-2.4-vendor-docs.tar.bz2
+# cp -p `rpm --eval %_sourcedir`/vendor*.sdf .
 ## build the docs
 # make guide.html
 ## tar them up
@@ -121,15 +121,15 @@ Source0: 	ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/%{pkg_name}-%{ver
 # cp *.html *.gif ../images/LDAPlogo.gif openldap-guide
 # tar cjvf `rpm --eval %_sourcedir`/openldap-guide-2.4.tar.bz2 openldap-guide
 ## To update the README-openldap2.4.mdv as well:
-# sdf -2text vendor-standalone.sdf
-# mv vendor-standalone.txt `rpm --eval %_sourcedir`/README-openldap2.4.mdv
+# sdf -2txt_ vendor-standalone.sdf
+# cp vendor-standalone.txt `rpm --eval %_sourcedir`/README-openldap2.4.mdv
 ## ensure your changes get back into the package:
 # cvs diff | bzip2 -c > \
-# `rpm --eval %_sourcedir`/openldap-2.3-admin-guide-add-vendor-doc.patch.bz2
-# tar cjvf `rpm --eval %_sourcedir`/openldap-2.3-vendor-docs.tar.bz2 vendor*.sdf
+# `rpm --eval %_sourcedir`/openldap-2.4-admin-guide-add-vendor-doc.patch.bz2
+# tar cjvf `rpm --eval %_sourcedir`/openldap-2.4-vendor-docs.tar.bz2 vendor*.sdf
 
-Source12:	openldap-guide-2.3.tar.bz2
-Source13:	README-openldap2.3.mdk
+Source12:	openldap-guide-2.4.tar.bz2
+Source13:	README-openldap2.4.mdv
 
 # Specific source
 Source1: 	ldap.init
@@ -183,7 +183,7 @@ Source67: 	dhcp.schema
 Source68: 	ldapns.schema
 
 # Doc sources, used to build SOURCE12 and SOURCE13 above
-Source100:	openldap-2.3-admin-guide-add-vendor-doc.patch
+Source100:	openldap-2.4-admin-guide-add-vendor-doc.patch
 Source101:	vendor.sdf
 Source100:	vendor-standalone.sdf
 
