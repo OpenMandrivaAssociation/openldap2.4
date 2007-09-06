@@ -1,7 +1,7 @@
 %define pkg_name	openldap
-%define version	2.4.4
-%define rel 4
-%global	beta alpha
+%define version	2.4.5
+%define rel 1
+%global	beta beta
 
 %{?!mklibname:%{error:You are missing macros, build will fail, see http://qa.mandriva.com/twiki/bin/view/Main/BackPorting}}
 
@@ -33,11 +33,6 @@
 %define _with_migration 1
 %endif
 
-%if %mdkversion < 1010
-%global __libtoolize /bin/true
-%endif
-
-
 %{?_with_system: %global build_system 1}
 %{?_without_system: %global build_system 0}
 %{?_with_modules: %global build_modules 1}
@@ -49,11 +44,12 @@
 %define fname ldap
 %define libname %mklibname %fname %major
 %define migtools_ver 	45
-# db42 with the txn_nolog patch is no longer necessary, just 4.2.52.4 (10.1)
-%if %mdkversion >= 1010
+# we want db42 with 4.2.52.5 and Howard's patch (2008.0)
+%if %mdkversion >= 200800
 %global db4_internal 0
 %else
 %global db4_internal 1
+%global __libtoolize /bin/true
 %endif
 %{?_with_db4internal: %global db4_internal 1}
 %{?_without_db4internal: %global db4_internal 0}
@@ -113,21 +109,20 @@ Source0: 	ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/%{pkg_name}-%{ver
 
 ## To generate ths tarball, check the docs out of CVS:
 # cvs -d :pserver:anonymous@cvs.OpenLDAP.org:/repo/OpenLDAP co \
-# -r OPENLDAP_REL_ENG_2_3 guide
+# -r OPENLDAP_REL_ENG_2_4 guide
 ## patch the docs:
 # cd guide/admin
-# bzcat `rpm --eval %_sourcedir`/openldap-2.3-admin-guide-add-vendor-doc.patch.bz2 \
-# | patch -p0
-# tar xjvf `rpm --eval %_sourcedir`/openldap-2.3-vendor-docs.tar.bz2
+# patch -p0 < `rpm --eval %_sourcedir`/openldap-2.4-admin-guide-add-vendor-doc.patch
+# tar xjvf `rpm --eval %_sourcedir`/openldap-2.4-vendor-docs.tar.bz2
 ## build the docs
 # make guide.html
 ## tar them up
 # mkdir openldap-guide
 # cp *.html *.gif ../images/LDAPlogo.gif openldap-guide
-# tar cjvf `rpm --eval %_sourcedir`/openldap-guide-2.3.tar.bz2 openldap-guide
-## To update the README-openldap2.3.mdk as well:
+# tar cjvf `rpm --eval %_sourcedir`/openldap-guide-2.4.tar.bz2 openldap-guide
+## To update the README-openldap2.4.mdv as well:
 # sdf -2text vendor-standalone.sdf
-# mv vendor-standalone.txt `rpm --eval %_sourcedir`/README-openldap2.3.mdk
+# mv vendor-standalone.txt `rpm --eval %_sourcedir`/README-openldap2.4.mdv
 ## ensure your changes get back into the package:
 # cvs diff | bzip2 -c > \
 # `rpm --eval %_sourcedir`/openldap-2.3-admin-guide-add-vendor-doc.patch.bz2
@@ -189,7 +184,8 @@ Source68: 	ldapns.schema
 
 # Doc sources, used to build SOURCE12 and SOURCE13 above
 Source100:	openldap-2.3-admin-guide-add-vendor-doc.patch
-Source101:	openldap-2.3-vendor-docs.tar.bz2
+Source101:	vendor.sdf
+Source100:	vendor-standalone.sdf
 
 # Chris Patches
 Patch0: 	%{pkg_name}-2.3.4-config.patch
@@ -213,11 +209,16 @@ Patch46: 	openldap-2.0.21-schema.patch
 # http://qa.mandriva.com/show_bug.cgi?id=15499
 Patch48:	MigrationTools-45-structural.patch
 
-Patch50: http://www.sleepycat.com/update/4.2.52/patch.4.2.52.1
-Patch51: http://www.sleepycat.com/update/4.2.52/patch.4.2.52.2
-Patch55: http://www.sleepycat.com/update/4.2.52/patch.4.2.52.3
-Patch56: http://www.sleepycat.com/update/4.2.52/patch.4.2.52.4
+# http://www.oracle.com/technology/software/products/berkeley-db/db/
+# http://www.oracle.com/technology/products/berkeley-db/db/update/4.2.52/patch.4.2.52.html
+Patch50: http://www.oracle.com/technology/products/berkeley-db/db/update/4.2.52/patch.4.2.52.1
+Patch51: http://www.oracle.com/technology/products/berkeley-db/db/update/4.2.52/patch.4.2.52.2
 Patch52: db-4.2.52-amd64-mutexes.patch
+Patch55: http://www.oracle.com/technology/products/berkeley-db/db/update/4.2.52/patch.4.2.52.3
+Patch56: http://www.oracle.com/technology/products/berkeley-db/db/update/4.2.52/patch.4.2.52.4
+Patch57: http://www.oracle.com/technology/products/berkeley-db/db/update/4.2.52/patch.4.2.52.5
+Patch58: http://www.stanford.edu/services/directory/openldap/configuration/patches/db/4252-region-fix.diff
+Patch60: db-4.2.52-libtool-fixes.patch
 %if %db4_internal
 # used by s_config, which is required by above patch:
 BuildRequires:	ed autoconf%{?notmdk: >= 2.5}
@@ -464,9 +465,13 @@ pushd db-%{dbver} >/dev/null
 %patch51
 %patch55
 %patch56
+%patch57
+%patch58 -p1
 
 %ifnarch %ix86
 %patch52 -p1 -b .amd64-mutexes
+%patch60 -p1 -b .libtool-fixes
+
 (cd dist && ./s_config)
 %endif
 popd >/dev/null
@@ -501,7 +506,7 @@ popd
 #%patch53 -p1 -b .ntlm
 
 # patches from CVS
-%patch100 -p1
+#%patch100 -p1
 #-b .dont-write-to-testdir
 
 # README:
@@ -545,7 +550,7 @@ CONFIGURE_TOP="../dist" %configure2_5x \
 
 perl -pi -e 's/^(libdb_base=\s+)\w+/\1libslapd%{ol_suffix}_db/g' Makefile
 #Fix soname and libname in libtool:
-perl -pi -e 's/shared_ext/shrext/g' libtool
+#perl -pi -e 's/shared_ext/shrext/g' libtool
 make
 rm -Rf $dbdir
 mkdir -p $dbdir
@@ -648,8 +653,8 @@ make depend
 make 
 make -C contrib/slapd-modules/smbk5pwd
 pushd contrib/slapd-modules/acl
-gcc -shared -fPIC -I../../../include -I../../../servers/slapd -Wall -g \
-        -o acl-posixgroup.so posixgroup.c
+#gcc -shared -fPIC -I../../../include -I../../../servers/slapd -Wall -g \
+#        -o acl-posixgroup.so posixgroup.c
 popd
 pushd contrib/slapd-modules/passwd
 gcc -shared -fPIC -I../../../include -Wall -g -o pw-netscape.so netscape.c
@@ -701,7 +706,7 @@ popd
 %makeinstall_std
 
 cp  contrib/slapd-modules/smbk5pwd/.libs/smbk5pwd.so* %{buildroot}/%{_libdir}/%{name}
-cp contrib/slapd-modules/acl/acl-posixgroup.so %{buildroot}/%{_libdir}/%{name}
+#cp contrib/slapd-modules/acl/acl-posixgroup.so %{buildroot}/%{_libdir}/%{name}
 cp contrib/slapd-modules/passwd/pw-netscape.so %{buildroot}/%{_libdir}/%{name}
 cp contrib/slapd-modules/passwd/pw-kerberos.so %{buildroot}/%{_libdir}/%{name}
 
@@ -711,7 +716,7 @@ install -d %{buildroot}/%{_datadir}/%{name}/tests
 cp -a tests/{data,scripts,Makefile,run} %{buildroot}/%{_datadir}/%{name}/tests
 ln -s %{_datadir}/%{name}/schema %{buildroot}/%{_datadir}/%{name}/tests
 find %{buildroot}/%{_datadir}/%{name}/tests -type f -name '*.conf' -exec perl -pi -e 's,\.\.\/servers\/slapd\/back-.*,%{_libdir}/%{name},g;s,\.\.\/servers\/slapd\/overlays,%{_libdir}/%{name},g' {} \;
-perl -pi -e 's,(\`pwd\`\/)?\.\.\/servers\/(slapd|slurpd)\/(slapd|slurpd),%{_sbindir}/${2}%{ol_major},g;s,^PROGDIR=.*,PROGDIR=%{_bindir},g;s,^CLIENTDIR=.*,CLIENTDIR=%{_bindir},g;s,^TESTDIR=.*,TESTDIR=\${USER_TESTDIR-\$TMPDIR/openldap-testrun},g;s,^SHTOOL=.*,. scripts/defines.sh,g;' %{buildroot}/%{_datadir}/%{name}/tests/scripts/defines.sh %{buildroot}/%{_datadir}/%{name}/tests/run
+perl -pi -e 's,(\`pwd\`\/)?\.\.\/servers\/(slapd|slurpd)\/(slapd|slurpd),%{_sbindir}/${2}%{ol_major},g;s,^PROGDIR=.*,PROGDIR=%{_bindir},g;s,^CLIENTDIR=.*,CLIENTDIR=%{_bindir},g;s,^TESTDIR=.*,TESTDIR=\${USER_TESTDIR-\$TMPDIR/openldap-testrun},g;s,^SHTOOL=.*,. scripts/defines.sh,g;s/ldap(search|add|delete|modify|whoami|compare|passwd)/ldap${1}%{ol_major}/g' %{buildroot}/%{_datadir}/%{name}/tests/scripts/defines.sh %{buildroot}/%{_datadir}/%{name}/tests/run
 perl -pi -e 's/testrun/\$TESTDIR/g;s,^SHTOOL=.*,. scripts/defines.sh,g' %{buildroot}/%{_datadir}/%{name}/tests/scripts/all
 perl -pi -e 's/^(Makefile|SUBDIRS)/#$1/g' %{buildroot}/%{_datadir}/%{name}/tests/Makefile
 echo 'SHTOOL="./scripts/shtool"' >> %{buildroot}/%{_datadir}/%{name}/tests/scripts/defines.sh
@@ -878,7 +883,7 @@ LDAPGROUP=ldap
 SLAPDCONF=${SLAPDCONF:-/etc/%{name}/slapd.conf}
 
 #decide whether we need to migrate at all:
-MIGRATE=`%{_sbindir}/slapd%{ol_major} -VV 2>&1|while read a b c d e;do case $d in (2.3.*) echo nomigrate;;(2.*) echo migrate;;esac;done`
+MIGRATE=`%{_sbindir}/slapd%{ol_major} -VV 2>&1|while read a b c d e;do case $d in (2.4.*) echo nomigrate;;(2.*) echo migrate;;esac;done`
 
 if [ "$1" -ne 1 -a -e "$SLAPDCONF" -a "$MIGRATE" != "nomigrate" ]
 then 
