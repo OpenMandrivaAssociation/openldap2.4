@@ -264,11 +264,10 @@ Requires:	shadow-utils, setup >= 2.2.0-6mdk
 %description
 OpenLDAP is an open source suite of LDAP (Lightweight Directory Access
 Protocol) applications and development tools.  The suite includes a
-stand-alone LDAP server (slapd) and stand-alone LDAP replication server
-(slurpd) which are in the -servers package, libraries for implementing the 
-LDAP protocol (in the lib packages), and utilities, tools, and sample clients 
-(in the -clients package). The openldap binary package includes configuration
-files used by the libraries.
+stand-alone LDAP server (slapd) which is in the -servers package, libraries for
+implementing the LDAP protocol (in the lib packages), and utilities, tools, and 
+sample clients (in the -clients package). The openldap binary package includes
+only configuration files used by the libraries.
 
 Install openldap if you need LDAP applications and tools.
 
@@ -304,9 +303,9 @@ Conflicts:	kolab < 1.9.5-0.20050801.4mdk
 %description servers
 OpenLDAP Servers
 
-This package contains the OpenLDAP servers, slapd (LDAP server) and slurpd
-(replication daemon), additional backends, configuration files, schema 
-definitions required for operation, and database maintenance tools
+This package contains the OpenLDAP server, slapd (LDAP server), additional 
+backends, configuration files, schema definitions required for operation, and 
+database maintenance tools
 
 This server package was compiled with support for the %{?_with_gdbm:gdbm}%{!?_with_gdbm:berkeley}
 database library.
