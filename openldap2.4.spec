@@ -3,7 +3,7 @@
 %define rel 1
 %global	beta %{nil}
 
-%{?!mklibname:%{error:You are missing macros, build will fail, see http://qa.mandriva.com/twiki/bin/view/Main/BackPorting}}
+%{?!mklibname:%{error:You are missing macros, build will fail, see http://wiki.mandriva.com/en/Projects/BackPorts#Building_Mandriva_SRPMS_on_other_distributions}}
 
 %{?!distsuffix:%define distsuffix mdk}
 %{?!distversion:%define distversion %(echo $[%{mdkversion}/10])}
