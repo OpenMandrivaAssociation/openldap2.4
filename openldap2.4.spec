@@ -1,6 +1,6 @@
 %define pkg_name	openldap
 %define version	2.4.6
-%define rel 2
+%define rel 3
 %global	beta %{nil}
 
 %{?!mklibname:%{error:You are missing macros, build will fail, see http://wiki.mandriva.com/en/Projects/BackPorts#Building_Mandriva_SRPMS_on_other_distributions}}
@@ -18,6 +18,7 @@
 %define build_modpacks 0
 %define build_slp 0
 %define build_heimdal 0
+%define build_asmmutex 0
 %global build_migration 0
 
 %if %{?mdkversion:0}%{?!mdkversion:1}
@@ -42,13 +43,15 @@
 %{?_without_slp: %global build_slp 0}
 %{?_with_heimdal: %global build_heimdal 1}
 %{?_without_heimdal: %global build_heimdal 0}
+%{?_with_asmmutex: %global build_asmmutex 1}
+%{?_without_asmmutex: %global build_asmmutex 0}
 
 %define major 		2.4_2
 %define fname ldap
 %define libname %mklibname %fname %major
 %define migtools_ver 	45
 # we want db42 with 4.2.52.5 and Howard's patch (2008.0)
-%if %mdkversion >= 200800
+%if %mdkversion >= 200900
 %global db4_internal 0
 %else
 %global db4_internal 1
@@ -56,7 +59,7 @@
 %endif
 %{?_with_db4internal: %global db4_internal 1}
 %{?_without_db4internal: %global db4_internal 0}
-%define dbver 4.2.52
+%define dbver 4.6.21
 %define dbname %(a=%dbver;echo ${a%.*})
 
 %define ol_ver_major 2.4
@@ -153,7 +156,7 @@ Source3: 	migration-tools.txt
 Source4: 	migrate_automount.pl
 
 %if %db4_internal
-Source30: http://www.sleepycat.com/update/snapshot/db-%{dbver}.tar.bz2
+Source30: http://www.sleepycat.com/update/snapshot/db-%{dbver}.tar.gz
 %endif
 
 # Extended Schema 
@@ -467,20 +470,28 @@ also be useful as load generators etc.
 %if %db4_internal
 %setup -q -n %{pkg_name}-%{version}%{beta} %{?_with_migration:-a 11} -a 30 
 pushd db-%{dbver} >/dev/null
-#upstream patches
-%patch50
-%patch51
-%patch55
-%patch56
-%patch57
-%patch58 -p1
+##upstream patches
+#.1:
+#%patch50
+#.2:
+#%patch51
+#.3:
+#%patch55
+#.4:
+#%patch56
+#.5:
+#%patch57
+#Howards mem-leak patch integrated upstream
+#%patch58 -p1
 
-%ifnarch %ix86
-%patch52 -p1 -b .amd64-mutexes
-%patch60 -p1 -b .libtool-fixes
+#%ifnarch %ix86
+#implemented upstream:
+#%patch52 -p1 -b .amd64-mutexes
+#not necessary
+#%patch60 -p1 -b .libtool-fixes
 
-(cd dist && ./s_config)
-%endif
+#(cd dist && ./s_config)
+#%endif
 popd >/dev/null
 %else
 %setup -q  -n %{pkg_name}-%{version}%{beta} %{?_with_migration:-a 11}
@@ -536,10 +547,14 @@ dbdir=`pwd`/db-instroot
 pushd db-%{dbver}/build_unix
 CONFIGURE_TOP="../dist" %configure2_5x \
         --enable-shared --disable-static \
-        --with-uniquename=_openldap_slapd%{ol_suffix}_mdk \
+        --with-uniquename=_openldap_slapd%{ol_suffix}_mdv \
 	--program-prefix=slapd%{ol_major}_ \
+%if %{build_asmmutex}
 %ifarch %{ix86}
 	--disable-posixmutexes --with-mutex=x86/gcc-assembly
+%endif
+%ifarch x86_64
+	--disable-posixmutexes --with-mutex=x86_64/gcc-assembly
 %endif
 %ifarch alpha
 	--disable-posixmutexes --with-mutex=ALPHA/gcc-assembly
@@ -552,6 +567,9 @@ CONFIGURE_TOP="../dist" %configure2_5x \
 %endif
 %ifarch sparc
 	--disable-posixmutexes --with-mutex=Sparc/gcc-assembly
+%endif
+%else
+	--with-mutex=POSIX/pthreads/library
 %endif
 
 #--with-mutex=POSIX/pthreads/library
@@ -566,6 +584,8 @@ rm -Rf $dbdir
 mkdir -p $dbdir
 make DESTDIR=$dbdir install
 ln -sf ${dbdir}/%{_libdir}/libslapd%{ol_suffix}_db-%{dbname}.so ${dbdir}/%{_libdir}/libdb-%{dbname}.so
+chmod u+w ${dbdir}/usr/include/db.h
+grep __lock_ db_int_def.h >> ${dbdir}/usr/include/db.h
 popd
 export CPPFLAGS="-I${dbdir}/%{_includedir} $CPPFLAGS"
 export LDFLAGS="-L${dbdir}/%{_libdir} $LDFLAGS"
