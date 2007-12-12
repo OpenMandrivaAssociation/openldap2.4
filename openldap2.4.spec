@@ -1,6 +1,6 @@
 %define pkg_name	openldap
 %define version	2.4.6
-%define rel 6
+%define rel 7
 %global	beta %{nil}
 
 %{?!mklibname:%{error:You are missing macros, build will fail, see http://wiki.mandriva.com/en/Projects/BackPorts#Building_Mandriva_SRPMS_on_other_distributions}}
@@ -51,7 +51,7 @@
 %define libname %mklibname %fname %major
 %define migtools_ver 	45
 # we want db42 with 4.2.52.5 and Howard's patch (2008.0)
-%if %mdkversion >= 200900
+%if %mdkversion >= 200810
 %global db4_internal 0
 %else
 %global db4_internal 1
