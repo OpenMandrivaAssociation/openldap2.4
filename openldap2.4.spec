@@ -1,6 +1,6 @@
 %define pkg_name	openldap
 %define version	2.4.6
-%define rel 4
+%define rel 5
 %global	beta %{nil}
 
 %{?!mklibname:%{error:You are missing macros, build will fail, see http://wiki.mandriva.com/en/Projects/BackPorts#Building_Mandriva_SRPMS_on_other_distributions}}
@@ -529,6 +529,7 @@ popd
 # patches from CVS
 #%patch100 -p1
 #-b .dont-write-to-testdir
+perl -pi -e 's/testrun/\${TESTDIR}/g' tests/scripts/test024-unique
 
 # README:
 cp %{SOURCE13} README.mdk
@@ -673,6 +674,7 @@ export ac_cv_header_sys_epoll_h=no
 
 %if !%build_system
 perl -pi -e 's/^(ldap_subdir\s+=\s+.*)%{pkg_name}/$1%{name}/g' Makefile
+perl -p -i.bak -e 's/slapd-(search|read|addel|modrdn|modify|bind)/slapd-${1}%{ol_major}/g' tests/progs/slapd-tester.c
 %endif
 
 # (oe) amd64 fix
@@ -746,11 +748,17 @@ install -d %{buildroot}/%{_datadir}/%{name}/tests
 cp -a tests/{data,scripts,Makefile,run} %{buildroot}/%{_datadir}/%{name}/tests
 ln -s %{_datadir}/%{name}/schema %{buildroot}/%{_datadir}/%{name}/tests
 find %{buildroot}/%{_datadir}/%{name}/tests -type f -name '*.conf' -exec perl -pi -e 's,\.\.\/servers\/slapd\/back-.*,%{_libdir}/%{name},g;s,\.\.\/servers\/slapd\/overlays,%{_libdir}/%{name},g' {} \;
-perl -pi -e 's,(\`pwd\`\/)?\.\.\/servers\/(slapd|slurpd)\/(slapd|slurpd),%{_sbindir}/${2}%{ol_major},g;s,^PROGDIR=.*,PROGDIR=%{_bindir},g;s,^CLIENTDIR=.*,CLIENTDIR=%{_bindir},g;s,^TESTDIR=.*,TESTDIR=\${USER_TESTDIR-\$TMPDIR/openldap-testrun},g;s/ldap(search|add|delete|modify|whoami|compare|passwd)/ldap${1}%{ol_major}/g;s,\$TESTWD\/,,g' %{buildroot}/%{_datadir}/%{name}/tests/scripts/defines.sh %{buildroot}/%{_datadir}/%{name}/tests/run
+perl -pi -e 's,(\`pwd\`\/)?\.\.\/servers\/(slapd|slurpd)\/(slapd|slurpd),%{_sbindir}/${2}%{ol_major},g;s,^PROGDIR=.*,PROGDIR=%{_bindir},g;s,^CLIENTDIR=.*,CLIENTDIR=%{_bindir},g;s,^TESTDIR=.*,TESTDIR=\${USER_TESTDIR-\$TMPDIR/openldap-testrun},g;s/ldap(search|add|delete|modify|whoami|compare|passwd)/ldap${1}%{ol_major}/g;s/slapd-tester$/slapd-tester%{ol_major}/g;s,\$TESTWD\/,,g;s/^(\.\*.*)\$(.*)/${1}\`pwd\`\/\$${2}/g' %{buildroot}/%{_datadir}/%{name}/tests/scripts/defines.sh %{buildroot}/%{_datadir}/%{name}/tests/run
 perl -pi -e 's/testrun/\$TESTDIR/g;s,^SHTOOL=.*,. scripts/defines.sh,g' %{buildroot}/%{_datadir}/%{name}/tests/scripts/all
+perl -p -i.bak -e 's,^olcModulePath: .*,olcModulePath: %{_libdir}/%{name},g' %{buildroot}/%{_datadir}/%{name}/tests/scripts/test050-syncrepl-multimaster %{buildroot}/%{_datadir}/%{name}/tests/scripts/test052-memberof
 perl -pi -e 's/^(Makefile|SUBDIRS)/#$1/g' %{buildroot}/%{_datadir}/%{name}/tests/Makefile
 echo 'SHTOOL="./scripts/shtool"' >> %{buildroot}/%{_datadir}/%{name}/tests/scripts/defines.sh
 install -m755 build/shtool %{buildroot}/%{_datadir}/%{name}/tests/scripts
+if [ -n "%{ol_major}" ]
+then for i in addel bind modify modrdn read search tester
+do ln -sf slapd-${i} tests/progs/slapd-${i}%{ol_major}
+done
+fi
 ln -s %{_datadir}/%{name}/tests/data %{buildroot}/%{_datadir}/%{name}/tests/testdata
 
 install -m755 tests/progs/.libs/slapd-* %{buildroot}/%{_bindir}
