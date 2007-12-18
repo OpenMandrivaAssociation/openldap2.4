@@ -232,7 +232,7 @@ Patch60: db-4.2.52-libtool-fixes.patch
 BuildRequires:	ed autoconf%{?notmdk: >= 2.5}
 %else
 # txn_nolog added in 4.2.52-6mdk
-BuildRequires: 	db4-devel = %{dbver}
+BuildRequires: 	db4.6-devel = %{dbver}
 %endif
 
 Patch53: %pkg_name-2.2.19-ntlm.patch
@@ -296,9 +296,9 @@ Obsoletes:	%{name}-back_passwd < %{version}-%{release}
 Obsoletes:	%{name}-back_sql < %{version}-%{release}
 %endif
 %if !%db4_internal
-Requires(pre):	db4-utils
-Requires(post):	db4-utils
-Requires:	db4-utils
+Requires(pre):	db46-utils
+Requires(post):	db46-utils
+Requires:	db46-utils
 %endif
 %if %{?_with_cyrussasl:1}%{!?_with_cyrussasl:0}
 %define saslver %([ -f "%{_includedir}/sasl/sasl.h" ] && echo -e "#include <sasl/sasl.h>\\nSASL_VERSION_MAJOR SASL_VERSION_MINOR SASL_VERSION_STEP"|cpp|awk 'END {printf "%s.%s.%s",$1,$2,$3}' || echo "2.1.22")
