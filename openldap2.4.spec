@@ -1,6 +1,6 @@
 %define pkg_name	openldap
-%define version	2.4.6
-%define rel 7
+%define version	2.4.7
+%define rel 1
 %global	beta %{nil}
 
 %{?!mklibname:%{error:You are missing macros, build will fail, see http://wiki.mandriva.com/en/Projects/BackPorts#Building_Mandriva_SRPMS_on_other_distributions}}
