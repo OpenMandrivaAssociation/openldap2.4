@@ -51,7 +51,7 @@
 %define libname %mklibname %fname %major
 %define migtools_ver 	45
 # we want db42 with 4.2.52.5 and Howard's patch (2008.0)
-%if %mdkversion >= 200810
+%if %mdkversion >= 200900
 %global db4_internal 0
 %else
 %global db4_internal 1
