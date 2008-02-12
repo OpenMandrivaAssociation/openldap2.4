@@ -276,7 +276,7 @@ Requires:	shadow-utils, setup >= 2.2.0-6mdk
 OpenLDAP is an open source suite of LDAP (Lightweight Directory Access
 Protocol) applications and development tools.  The suite includes a
 stand-alone LDAP server (slapd) which is in the -servers package, libraries for
-implementing the LDAP protocol (in the lib packages), and utilities, tools, and 
+implementing the LDAP protocol (in the lib packages), and utilities, tools, and
 sample clients (in the -clients package). The openldap binary package includes
 only configuration files used by the libraries.
 
