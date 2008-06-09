@@ -955,7 +955,9 @@ fi
 %endif
 
 %post servers
+%if %mdkversion < 200900
 /sbin/ldconfig
+%endif
 SLAPD_STATUS=`LANG=C LC_ALL=C NOLOCALE=1 service ldap%{ol_major} status 2>/dev/null|grep -q stopped;echo $?`
 [ $SLAPD_STATUS -eq 1 ] && service ldap%{ol_major} stop
 # bgmilne: part 2 of gdbm->dbb conversion for data created with 
@@ -1082,7 +1084,9 @@ fi
 
 
 %postun servers
+%if %mdkversion < 200900
 /sbin/ldconfig
+%endif
 if [ $1 = 0 ]; then 
 	# remove ldap entry 
 	perl -pi -e "s|^.*ldap.*\n||g" %{_sysconfdir}/syslog.conf 
@@ -1095,8 +1099,12 @@ fi
 %_postun_userdel ldap
 
 
+%if %mdkversion < 200900
 %post -n %{libname} -p /sbin/ldconfig
+%endif
+%if %mdkversion < 200900
 %postun -n %{libname} -p /sbin/ldconfig
+%endif
 
 %triggerpostun -- openldap-clients < 2.1.25-5mdk
 # We may have openldap client configuration in /etc/ldap.conf
