@@ -1,0 +1,11 @@
+--- openldap-2.2.24/MigrationTools-45/migrate_passwd.pl.structural	2005-06-09 17:38:37.000000000 -0300
++++ openldap-2.2.24/MigrationTools-45/migrate_passwd.pl	2005-06-09 17:38:39.000000000 -0300
+@@ -134,6 +134,8 @@
+ 		print $HANDLE "objectClass: person\n";
+ 		print $HANDLE "objectClass: organizationalPerson\n";
+ 		print $HANDLE "objectClass: inetOrgPerson\n";
++	} else {
++		print $HANDLE "objectClass: account\n";
+ 	}
+ 
+ 	print $HANDLE "objectClass: posixAccount\n";

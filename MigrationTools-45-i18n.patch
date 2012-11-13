@@ -1,0 +1,257 @@
+diff -ur openldap-2.1.25/MigrationTools-45-noi18n/migrate_all_nis_offline.sh openldap-2.1.25/MigrationTools-45/migrate_all_nis_offline.sh
+--- openldap-2.1.25/MigrationTools-45-noi18n/migrate_all_nis_offline.sh	2004-01-25 16:02:25.000000000 +0200
++++ openldap-2.1.25/MigrationTools-45/migrate_all_nis_offline.sh	2004-01-25 16:03:53.000000000 +0200
+@@ -66,7 +66,7 @@
+ ypcat $DOMFLAG services > $ETC_SERVICES
+ ypcat $DOMFLAG protocols > $ETC_PROTOCOLS
+ touch $ETC_FSTAB
+-ypcat $DOMFLAG rpc.byname > $ETC_RPC
++ypcat $DOMFLAG rpc.byname  |sort | uniq > $ETC_RPC
+ ypcat $DOMFLAG hosts > $ETC_HOSTS
+ ypcat $DOMFLAG networks > $ETC_NETWORKS
+ #ypcat $DOMFLAG -k aliases > $ETC_ALIASES
+diff -ur openldap-2.1.25/MigrationTools-45-noi18n/migrate_all_nis_online.sh openldap-2.1.25/MigrationTools-45/migrate_all_nis_online.sh
+--- openldap-2.1.25/MigrationTools-45-noi18n/migrate_all_nis_online.sh	2004-01-25 16:02:25.000000000 +0200
++++ openldap-2.1.25/MigrationTools-45/migrate_all_nis_online.sh	2004-01-25 16:03:53.000000000 +0200
+@@ -42,6 +42,7 @@
+ 
+ TMPDIR="/tmp"
+ ETC_PASSWD=`mktemp $TMPDIR/passwd.ldap.XXXXXX`
++ETC_SHADOW=`mktemp $TMPDIR/shadow.ldap.XXXXXX`
+ ETC_GROUP=`mktemp $TMPDIR/group.ldap.XXXXXX`
+ ETC_SERVICES=`mktemp $TMPDIR/services.ldap.XXXXXX`
+ ETC_PROTOCOLS=`mktemp $TMPDIR/protocols.ldap.XXXXXX`
+@@ -62,11 +63,12 @@
+ fi
+ 
+ ypcat $DOMFLAG passwd > $ETC_PASSWD
++ypcat $DOMFLAG shadow.byname > $ETC_SHADOW
+ ypcat $DOMFLAG group > $ETC_GROUP
+ ypcat $DOMFLAG services > $ETC_SERVICES
+ ypcat $DOMFLAG protocols > $ETC_PROTOCOLS
+ touch $ETC_FSTAB
+-ypcat $DOMFLAG rpc.byname > $ETC_RPC
++ypcat $DOMFLAG rpc.byname |sort | uniq  > $ETC_RPC
+ ypcat $DOMFLAG hosts > $ETC_HOSTS
+ ypcat $DOMFLAG networks > $ETC_NETWORKS
+ #ypcat $DOMFLAG -k aliases > $ETC_ALIASES
+@@ -74,6 +76,7 @@
+ . ${INSTDIR}migrate_all_online.sh $*
+ 
+ rm -f $ETC_PASSWD
++rm -f $ETC_SHADOW
+ rm -f $ETC_GROUP
+ rm -f $ETC_SERVICES
+ rm -f $ETC_PROTOCOLS
+diff -ur openldap-2.1.25/MigrationTools-45-noi18n/migrate_all_online.sh openldap-2.1.25/MigrationTools-45/migrate_all_online.sh
+--- openldap-2.1.25/MigrationTools-45-noi18n/migrate_all_online.sh	2004-01-25 16:02:25.000000000 +0200
++++ openldap-2.1.25/MigrationTools-45/migrate_all_online.sh	2004-01-25 16:03:53.000000000 +0200
+@@ -57,6 +57,10 @@
+ if [ "X$ETC_PASSWD" = "X" ]; then
+ 	ETC_PASSWD=/etc/passwd
+ fi
++if [ "X$ETC_SHADOW" = "X" ]; then
++	ETC_SHADOW=/etc/shadow
++fi
++
+ if [ "X$ETC_GROUP" = "X" ]; then
+ 	ETC_GROUP=/etc/group
+ fi
+@@ -178,6 +182,7 @@
+ echo "Migrating networks..."
+ $PERL -I${INSTDIR} ${INSTDIR}migrate_networks.pl	$ETC_NETWORKS >> $DB
+ echo "Migrating users..."
++export ETC_SHADOW
+ $PERL -I${INSTDIR} ${INSTDIR}migrate_passwd.pl		$ETC_PASSWD >> $DB
+ echo "Migrating protocols..."
+ $PERL -I${INSTDIR} ${INSTDIR}migrate_protocols.pl	$ETC_PROTOCOLS >> $DB
+diff -ur openldap-2.1.25/MigrationTools-45-noi18n/migrate_automount.pl openldap-2.1.25/MigrationTools-45/migrate_automount.pl
+--- openldap-2.1.25/MigrationTools-45-noi18n/migrate_automount.pl	2003-04-15 05:09:33.000000000 +0200
++++ openldap-2.1.25/MigrationTools-45/migrate_automount.pl	2004-01-25 16:03:53.000000000 +0200
+@@ -33,9 +33,9 @@
+ # services migration tool
+ #
+ 
+-require 'migrate_common.ph';
+- 
+-$PROGRAM = "migrate_automount.pl"; 
++require '/usr/share/openldap/migration/migrate_common.ph';
++
++$PROGRAM = "/usr/share/openldap/migration/migrate_automount.pl";
+ $NAMINGCONTEXT = &getsuffix($PROGRAM);
+ 
+ &parse_args();
+@@ -84,13 +84,12 @@
+ 	
+ 	return if (!$mapname);
+ 
+-	if ($key eq "*"){	
+-		# since * isnt a valid attrib, replace it with "/" 
+-		# which isnt a valid filename :->
+-		print $HANDLE "dn: cn=/,nisMapName=$mapname,$NAMINGCONTEXT\n";
+-	} else {
+-		print $HANDLE "dn: cn=$key,nisMapName=$mapname,$NAMINGCONTEXT\n";
++	if ($key eq "*"){
++		# since * isn't a valid attrib, replace it with "/" 
++		# which isn't a valid filename :->
++		$key = "/";
+ 	}
++	print $HANDLE "dn: cn=$key, ou=$mapname,$NAMINGCONTEXT\n";
+ 	print $HANDLE "objectClass: nisObject\n";
+ 	print $HANDLE "cn: $key\n";
+ 	print $HANDLE "nisMapEntry: $value\n";
+@@ -101,3 +100,4 @@
+ close(INFILE);
+ if (OUTFILE != STDOUT) { close(OUTFILE); }
+ 
++
+diff -ur openldap-2.1.25/MigrationTools-45-noi18n/migrate_passwd.pl openldap-2.1.25/MigrationTools-45/migrate_passwd.pl
+--- openldap-2.1.25/MigrationTools-45-noi18n/migrate_passwd.pl	2003-04-15 05:09:34.000000000 +0200
++++ openldap-2.1.25/MigrationTools-45/migrate_passwd.pl	2004-01-25 16:04:07.000000000 +0200
+@@ -37,6 +37,7 @@
+ # Thanks to Peter Jacob Slot <peter@vision.auk.dk>.
+ #
+ 
++use MIME::Base64; 
+ require 'migrate_common.ph';
+ 
+ $PROGRAM = "migrate_passwd.pl";
+@@ -53,28 +54,6 @@
+ 	next if /^#/;
+ 	next if /^\+/;
+ 
+-	s/Ä/Ae/g;
+-	s/Ë/Ee/g;
+-	s/Ï/Ie/g;
+-	s/Ö/Oe/g;
+-	s/Ü/Ue/g;
+-
+-	s/ä/ae/g;
+-	s/ë/ee/g;
+-	s/ï/ie/g;
+-	s/ö/oe/g;
+-	s/ü/ue/g;
+-	s/ÿ/ye/g;
+-	s/ß/ss/g;
+-	s/é/e/g;
+-
+-	s/Æ/Ae/g;
+-	s/æ/ae/g;
+-	s/Ø/Oe/g;
+-	s/ø/oe/g;
+-	s/Å/Ae/g;
+-	s/å/ae/g;
+-
+ 	local($user, $pwd, $uid, $gid, $gecos, $homedir, $shell) = split(/:/);
+ 	
+ 	if ($use_stdout) {
+@@ -103,7 +82,15 @@
+ 	
+ 	print $HANDLE "dn: uid=$user,$NAMINGCONTEXT\n";
+ 	print $HANDLE "uid: $user\n";
+-	print $HANDLE "cn: $cn\n";
++
++	if ($cn =~ /([\x80-\xff])/) {
++	    $cn =`echo $cn | iconv -t utf8`;
++	    chomp $cn;
++	    print $HANDLE "cn:: " . encode_base64($cn, "") . "\n";
++	}
++	else {
++	    print $HANDLE "cn: $cn\n";
++	}
+ 
+ 	if ($EXTENDED_SCHEMA) {
+ 		if ($wphone) {
+@@ -116,9 +103,26 @@
+ 			print $HANDLE "homePhone: $hphone\n";
+ 		}
+ 		if ($givenname) {
++                   if ($givenname =~ /([\x80-\xff])/) {
++                       $givenname =`echo $givenname | iconv -t utf8`;
++                       chomp $givenname;
++                       print $HANDLE "givenname:: " . encode_base64($givenname,	 "") . "\n";
++                   }
++                   else {
+ 			print $HANDLE "givenName: $givenname\n";
++                   }
++               }
++
++               if ($sn) {
++		   if ($sn =~ /([\x80-\xff])/) {
++		       $sn =`echo $sn | iconv -t utf8`;
++		       chomp $sn;
++		       print $HANDLE "sn:: " . encode_base64($sn, "") . "\n";
++		   }
++	           else {
++		       print $HANDLE "sn: $sn\n";
++		   }
+ 		}
+-		print $HANDLE "sn: $sn\n";
+ 		if ($DEFAULT_MAIL_DOMAIN) {
+ 			print $HANDLE "mail: $user\@$DEFAULT_MAIL_DOMAIN\n";
+ 		}
+@@ -132,7 +136,6 @@
+ 		print $HANDLE "objectClass: inetOrgPerson\n";
+ 	}
+ 
+-	print $HANDLE "objectClass: account\n";
+ 	print $HANDLE "objectClass: posixAccount\n";
+ 	print $HANDLE "objectClass: top\n";
+ 
+@@ -173,8 +176,37 @@
+ 	}
+ 
+ 	if ($gecos) {
+-		print $HANDLE "gecos: $gecos\n";
+-	}
++	    $_ = $gecos;
++ 	    s/Ä/Ae/g;
++  	    s/Ë/Ee/g;
++  	    s/Ï/Ie/g;
++  	    s/Ö/Oe/g;
++  	    s/Ü/Ue/g;
++    
++  	    s/ä/ae/g;
++  	    s/ë/ee/g;
++  	    s/ï/ie/g;
++  	    s/ö/oe/g;
++  	    s/ü/ue/g;
++  	    s/ÿ/ye/g;
++	    
++  	    s/Æ/Ae/g;
++  	    s/æ/ae/g;
++  	    s/Ø/Oe/g;
++  	    s/ø/oe/g;
++ 	    s/Å/Ae/g;
++  	    s/å/ae/g;
++	    # French accent
++	    s/é/e/g;
++	    s/è/e/g;
++	    s/ê/e/g;
++	    s/ô/o/g;
++	    s/à/a/g;
++	    
++  	    s/([\x80-\xff])/'%' . sprintf("%02X", ord($1))/ge;
++	    print $HANDLE "gecos: $_\n";
++	    
++	}	
+ 
+ 	print $HANDLE "\n";
+ }
+@@ -184,12 +216,12 @@
+ 
+ sub read_shadow_file
+ {
+-	open(SHADOW, "/etc/shadow") || return;
++	open(SHADOW, $ENV{ETC_SHADOW}) || return;
+ 	while(<SHADOW>) {
+-		chop;
+-		($shadowUser) = split(/:/, $_);
++	chop;
++	($shadowUser) = split(/:/, $_);
+ 		$shadowUsers{$shadowUser} = $_;
+-	}
++		}
+ 	close(SHADOW);
+ }
+ 

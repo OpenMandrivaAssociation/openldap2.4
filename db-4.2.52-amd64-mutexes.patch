@@ -1,0 +1,65 @@
+--- db-4.2.52/dbinc/mutex.h.amd64-mutexes	2003-09-20 23:40:49.000000000 +0200
++++ db-4.2.52/dbinc/mutex.h	2004-02-25 14:25:43.000000000 +0100
+@@ -781,6 +781,31 @@ typedef unsigned char tsl_t;
+ #endif
+ #endif
+ 
++/*********************************************************************
++ * amd64/gcc assembly.
++ *********************************************************************/
++#ifdef HAVE_MUTEX_AMD64_GCC_ASSEMBLY
++typedef unsigned char tsl_t;
++
++#ifdef LOAD_ACTUAL_MUTEX_CODE
++/*
++ * For gcc/amd64, 0 is clear, 1 is set.
++ */
++#define	MUTEX_SET(tsl) ({						\
++	register tsl_t *__l = (tsl);					\
++	int __r;							\
++	asm volatile("movq $1,%%rax; lock; xchgb %1,%%al; xorq $1,%%rax"\
++	    : "=&a" (__r), "=m" (*__l)					\
++	    : "1" (*__l)						\
++	    );								\
++	__r & 1;							\
++})
++
++#define	MUTEX_UNSET(tsl)	(*(tsl) = 0)
++#define	MUTEX_INIT(tsl)		MUTEX_UNSET(tsl)
++#endif
++#endif
++
+ /*
+  * Mutex alignment defaults to one byte.
+  *
+--- db-4.2.52/dist/aclocal/mutex.ac.amd64-mutexes	2003-06-16 16:54:39.000000000 +0200
++++ db-4.2.52/dist/aclocal/mutex.ac	2004-02-25 14:23:21.000000000 +0100
+@@ -461,6 +461,17 @@ AC_TRY_COMPILE(,[
+ ], [db_cv_mutex="ia64/gcc-assembly"])
+ fi
+ 
++# amd64/gcc: Linux
++if test "$db_cv_mutex" = no; then
++AC_TRY_COMPILE(,[
++#if defined(__x86_64__) && defined(__GNUC__)
++	exit(0);
++#else
++	FAIL TO COMPILE/LINK
++#endif
++], [db_cv_mutex="amd64/gcc-assembly"])
++fi
++
+ # uts/cc: UTS
+ if test "$db_cv_mutex" = no; then
+ AC_TRY_COMPILE(,[
+@@ -511,6 +522,10 @@ ia64/gcc-assembly)	ADDITIONAL_OBJS="mut_
+ 			AC_DEFINE(HAVE_MUTEX_IA64_GCC_ASSEMBLY)
+ 			AH_TEMPLATE(HAVE_MUTEX_IA64_GCC_ASSEMBLY,
+ 			    [Define to 1 to use the GCC compiler and IA64 assembly language mutexes.]);;
++amd64/gcc-assembly)	ADDITIONAL_OBJS="mut_tas${o} $ADDITIONAL_OBJS"
++			AC_DEFINE(HAVE_MUTEX_AMD64_GCC_ASSEMBLY)
++			AH_TEMPLATE(HAVE_MUTEX_AMD64_GCC_ASSEMBLY,
++			    [Define to 1 to use the GCC compiler and AMD64 assembly language mutexes.]);;
+ POSIX/pthreads)		ADDITIONAL_OBJS="mut_pthread${o} $ADDITIONAL_OBJS"
+ 			AC_DEFINE(HAVE_MUTEX_PTHREADS)
+ 			AH_TEMPLATE(HAVE_MUTEX_PTHREADS,

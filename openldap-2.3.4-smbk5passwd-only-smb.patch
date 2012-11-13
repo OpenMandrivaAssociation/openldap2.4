@@ -1,0 +1,20 @@
+--- openldap-2.3.38/contrib/slapd-modules/smbk5pwd/Makefile.all	2007-10-04 21:42:33.000000000 +0200
++++ openldap-2.3.38/contrib/slapd-modules/smbk5pwd/Makefile	2007-10-04 21:48:04.000000000 +0200
+@@ -14,7 +14,7 @@
+ CC=gcc
+ 
+ # Omit DO_KRB5 or DO_SAMBA if you don't want to support it.
+-DEFS=-DDO_KRB5 -DDO_SAMBA
++DEFS=-DDO_SAMBA
+ 
+ HEIMDAL_INC=-I/usr/include/heimdal
+ SSL_INC=
+@@ -24,7 +24,7 @@
+ HEIMDAL_LIB=-L$(libdir)/heimdal -lkrb5 -lkadm5srv
+ SSL_LIB=-lcrypto
+ LDAP_LIB=-L../../../libraries/libldap_r/ -L../../../libraries/liblber/ -lldap_r -llber
+-LIBS=$(LDAP_LIB) $(HEIMDAL_LIB) $(SSL_LIB)
++LIBS=$(LDAP_LIB) $(SSL_LIB)
+ 
+ all:	smbk5pwd.la
+ 

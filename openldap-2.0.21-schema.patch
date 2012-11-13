@@ -1,0 +1,31 @@
+--- openldap-2.0.21/servers/slapd/schema/misc.schema.mdk	Wed Jan 23 14:34:09 2002
++++ openldap-2.0.21/servers/slapd/schema/misc.schema	Wed Jan 23 14:36:54 2002
+@@ -11,7 +11,7 @@
+ # draft-lachman-laser-ldap-mail-routing-02.txt !!!EXPIRED!!!
+ #
+ attributetype ( 2.16.840.1.113730.3.1.13
+-	NAME 'mailLocalAddress'
++	NAME ('mailLocalAddress' 'mailAlternateAddress')
+ 	DESC 'RFC822 email address of this recipient'
+ 	EQUALITY caseIgnoreIA5Match
+ 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
+@@ -24,7 +24,7 @@
+ 	SINGLE-VALUE )
+ 
+ attributetype ( 2.16.840.1.113730.3.1.47
+-	NAME 'mailRoutingAddress'
++	NAME ('mailForwardingAddress' 'mailRoutingAddress')
+ 	DESC 'RFC822 routing address of this recipient'
+ 	EQUALITY caseIgnoreIA5Match
+ 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256}
+@@ -64,3 +64,10 @@
+ 	SUP top STRUCTURAL
+ 	MUST cn
+ 	MAY rfc822MailMember )
++
++objectclass ( 2.16.840.1.113730.3.2.3
++	NAME 'mailRecipient'
++	DESC 'Internet local mail recipient'
++	SUP top AUXILIARY
++	MAY     ( cn $ mail $ mailAlternateAddress $ mailHost $ mailRoutingAddress ) )
++

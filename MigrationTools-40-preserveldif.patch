@@ -1,0 +1,16 @@
+--- MigrationTools-40/migrate_all_offline.sh~	2002-06-13 17:33:23.000000000 -0300
++++ MigrationTools-40/migrate_all_offline.sh	2002-06-13 17:44:30.000000000 -0300
+@@ -155,7 +155,12 @@
+ fi
+ EXITCODE=$?
+ 
+-rm -f $DB
++if [ "$EXITCODE" -eq "0" ]; then
++	rm -f $DB
++else
++	echo "Error"
++	echo "File used for this migration: $DB"
++fi
+ 
+ if [ "X$EXIT" != "Xno" ]; then
+ 	exit $EXITCODE

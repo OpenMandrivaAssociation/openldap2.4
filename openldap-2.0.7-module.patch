@@ -1,0 +1,13 @@
+--- openldap-2.0.7/build/top.mk.old	Thu Apr 26 19:29:12 2001
++++ openldap-2.0.7/build/top.mk	Thu Apr 26 19:29:47 2001
+@@ -30,7 +30,7 @@
+ libexecdir = @libexecdir@
+ localstatedir = @localstatedir@
+ mandir = @mandir@
+-moduledir = @libexecdir@$(ldap_subdir)
++moduledir = $(libdir)$(ldap_subdir)
+ sbindir = @sbindir@
+ sharedstatedir = @sharedstatedir@
+ sysconfdir = @sysconfdir@$(ldap_subdir)
+
+
