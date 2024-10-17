@@ -107,7 +107,7 @@ Version: 	%{version}
 Release: 	%{release}
 License: 	Artistic
 Group: 		System/Servers
-URL: 		http://www.openldap.org
+URL: 		https://www.openldap.org
 
 # Openldap source
 Source0: 	ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/%{pkg_name}-%{version}%{beta}.tgz
