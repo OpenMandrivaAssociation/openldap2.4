@@ -229,6 +229,10 @@ Patch58: http://www.stanford.edu/services/directory/openldap/configuration/patch
 Patch60: db-4.2.52-libtool-fixes.patch
 %if %db4_internal
 # used by s_config, which is required by above patch:
+BuildRequires:	automake
+BuildRequires:	libtool-base
+BuildRequires:	slibtool
+BuildRequires:	make
 BuildRequires:	ed autoconf%{?notmdk: >= 2.5}
 %else
 # txn_nolog added in 4.2.52-6mdk
