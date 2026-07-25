@@ -9,7 +9,7 @@
 %{?!distversion:%define distversion %(echo $[%{mdkversion}/10])}
 %{?!mkrel:%define mkrel(c:) %{-c:0.%{-c*}.}%{!?_with_unstable:%(perl -e '$_="%{1}";m/(.\*\\D\+)?(\\d+)$/;$rel=${2}-1;re;print "$1$rel";').%{?subrel:%subrel}%{!?subrel:1}.%{distversion}%{?_with_unstable:%{1}}%{distsuffix}}}
 
-%define release %mkrel %rel
+%define release %rel.1
 
 #defaults
 %define build_system 0
